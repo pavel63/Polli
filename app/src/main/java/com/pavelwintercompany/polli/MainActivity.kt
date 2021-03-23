@@ -188,7 +188,7 @@ class MainActivity : AppCompatActivity() {
     ).build()
 
 
-    suspend fun getNextModel()= getDb().noteDao().getAll().sortedBy { it.rating }.last()
+    suspend fun getNextModel()= getDb().noteDao().getAll().sortedBy { it.rating }.first()
 
     suspend fun showNextNote(questionTv : TextView){
       val nextNote = getNextModel()
