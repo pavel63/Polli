@@ -57,17 +57,6 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-
-
-GlobalScope.launch {
-    val notesDao = getDb()
-
-    notesDao.noteDao().insertAll(Note(Random.nextInt(), System.currentTimeMillis().toString(), 1, "ilw", "fw"))
-    val notes: List<Note> = notesDao.noteDao().getAll()
-
-    val note = notes[0]
-}
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -86,7 +75,6 @@ GlobalScope.launch {
         val factory = LayoutInflater.from(this)
         val textEntryView: View = factory.inflate(R.layout.text_entry_add_item, null)
 //text_entry is an Layout XML file containing two text field to display in alert dialog
-//text_entry is an Layout XML file containing two text field to display in alert dialog
         val input1 = textEntryView.findViewById(R.id.alertDialogQuestionEt) as EditText
         val input2 = textEntryView.findViewById(R.id.alertDialogAnswerEt) as EditText
         val alert: AlertDialog.Builder = AlertDialog.Builder(this)
@@ -98,6 +86,9 @@ GlobalScope.launch {
                 DialogInterface.OnClickListener { dialog, whichButton ->
                     Log.i("AlertDialog", "Question Entered " + input1.text.toString())
                     Log.i("AlertDialog", "Answer Entered " + input2.text.toString())
+
+                    addNote(input1.text.toString(), input2.text.toString())
+
                     /* User clicked OK so do some stuff */
                 })
             .setNegativeButton(getString(R.string.cancel),
@@ -105,6 +96,18 @@ GlobalScope.launch {
         alert.show()
     }
 
+    fun addNote(question : String, answer : String){
+
+        GlobalScope.launch {
+            val notesDao = getDb()
+
+            notesDao.noteDao().insertAll(Note(Random.nextInt(), System.currentTimeMillis().toString(), 1, question, answer))
+            //val notes: List<Note> = notesDao.noteDao().getAll()
+
+                // val note = notes[0]
+        }
+
+    }
 
    suspend fun getDb(): AppDatabase = Room.databaseBuilder(
         applicationContext,
