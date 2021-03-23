@@ -3,6 +3,7 @@ package com.pavelwintercompany.polli.data
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface NoteDao {
@@ -11,6 +12,10 @@ interface NoteDao {
 
         @Insert
         fun insertAll(vararg notes: Note)
+
+        @Update
+        fun update(vararg notes: Note)
+
 
 
         /*  @Query("SELECT * FROM user WHERE uid IN (:userIds)")

@@ -16,4 +16,5 @@
     <string name="question_answer_example">Введите вопрос и ответ. Например, в вопросе \'стол(англ)\', а в ответе \'table\'</string>
     <string name="question_hint_example">Введите текст вопроса, например \'стол(англ)\'</string>
     <string name="answer_hint_example">Введите текст ответа, например \'table\'</string>
+    <string name="next_note">Следующая запись</string>
 </resources>

@@ -6,7 +6,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -21,32 +24,42 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import com.pavelwintercompany.polli.data.AppDatabase
 import com.pavelwintercompany.polli.data.Note
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.pavelwintercompany.polli.databinding.ContentMainBinding
+import kotlinx.coroutines.*
 import kotlin.concurrent.thread
 import kotlin.random.Random
 
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var binding: ContentMainBinding
+
     private lateinit var appBarConfiguration: AppBarConfiguration
+
+    private var currentHash = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        val toolbar: Toolbar = findViewById(R.id.toolbar)
+
+       /* binding = ContentMainBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)*/
+
+
+       setContentView(R.layout.activity_main)
+
+
+       val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
         val fab: FloatingActionButton = findViewById(R.id.fab)
         fab.setOnClickListener { view ->
-          /*  Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()*/
+            /*  Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                      .setAction("Action", null).show()*/
             generateAlertAddDialog()
         }
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         val navView: NavigationView = findViewById(R.id.nav_view)
-        val navController = findNavController(R.id.nav_host_fragment)
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
@@ -54,8 +67,65 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow
             ), drawerLayout
         )
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
+
+        val questionTv : TextView = findViewById(R.id.questionView)
+        val trueAnswerTv : TextView = findViewById(R.id.answerTrueTv)
+
+        val buttonCheck : Button = findViewById(R.id.checkBtn)
+
+        val buttonGood : Button =findViewById(R.id.buttonGood)
+        val buttonNorm : Button =findViewById(R.id.buttonNorm)
+        val buttonBad : Button =findViewById(R.id.buttonBad)
+        val buttonNext : Button =findViewById(R.id.nextBtn)
+
+        buttonBad.setOnClickListener {setNoteResult(1)  }
+        buttonNorm.setOnClickListener { setNoteResult(2) }
+        buttonGood.setOnClickListener { setNoteResult(3) }
+
+        buttonCheck.setOnClickListener {
+
+            GlobalScope.launch {
+                val answer = getNextModel().answer
+
+                GlobalScope.launch(Dispatchers.Main) {
+                    trueAnswerTv.text=answer
+                }
+                }
+
+          //  Toast.makeText(this, "fdfdf", Toast.LENGTH_SHORT).show()
+        }
+
+        buttonNext.setOnClickListener {
+            GlobalScope.launch {
+                showNextNote(questionTv)
+            }
+        }
+
+
+        GlobalScope.launch {
+            showNextNote(questionTv)
+        }
+
+    }
+
+
+    fun setNoteResult(settedBall : Int){
+
+
+        GlobalScope.launch {
+
+            val note = getNextModel().copy(rating = settedBall)
+
+
+            val notesDao = getDb()
+
+            notesDao.noteDao().update(
+                note
+            )
+            //val notes: List<Note> = notesDao.noteDao().getAll()
+
+            // val note = notes[0]
+        }
 
     }
 
@@ -65,13 +135,8 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment)
-        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
-    }
 
-
-    fun generateAlertAddDialog(){
+    fun generateAlertAddDialog() {
         val factory = LayoutInflater.from(this)
         val textEntryView: View = factory.inflate(R.layout.text_entry_add_item, null)
 //text_entry is an Layout XML file containing two text field to display in alert dialog
@@ -96,21 +161,43 @@ class MainActivity : AppCompatActivity() {
         alert.show()
     }
 
-    fun addNote(question : String, answer : String){
+    fun addNote(question: String, answer: String) {
 
         GlobalScope.launch {
             val notesDao = getDb()
 
-            notesDao.noteDao().insertAll(Note(Random.nextInt(), System.currentTimeMillis().toString(), 1, question, answer))
+            notesDao.noteDao().insertAll(
+                Note(
+                    Random.nextInt(),
+                    System.currentTimeMillis().toString(),
+                    1,
+                    question,
+                    answer
+                )
+            )
             //val notes: List<Note> = notesDao.noteDao().getAll()
 
-                // val note = notes[0]
+            // val note = notes[0]
         }
 
     }
 
-   suspend fun getDb(): AppDatabase = Room.databaseBuilder(
+     suspend fun getDb(): AppDatabase = Room.databaseBuilder(
         applicationContext,
         AppDatabase::class.java, "database-name"
     ).build()
+
+
+    suspend fun getNextModel()= getDb().noteDao().getAll().sortedBy { it.rating }.last()
+
+    suspend fun showNextNote(questionTv : TextView){
+      val nextNote = getNextModel()
+
+        GlobalScope.launch(Dispatchers.Main) {
+          questionTv.text=nextNote.question
+            currentHash = nextNote.hash ?:""
+        }
+
+    }
+
 }
