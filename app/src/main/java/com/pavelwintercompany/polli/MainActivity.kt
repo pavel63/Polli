@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity() {
         buttonCheck.setOnClickListener {
 
             GlobalScope.launch {
-                val answer = getNextModel().answer
+                val answer = getNextModel()?.answer
 
                 GlobalScope.launch(Dispatchers.Main) {
                     trueAnswerTv.text=answer
@@ -114,14 +114,16 @@ class MainActivity : AppCompatActivity() {
 
         GlobalScope.launch {
 
-            val note = getNextModel().copy(rating = settedBall)
+            val note = getNextModel()?.copy(rating = settedBall)
 
 
             val notesDao = getDb()
 
-            notesDao.noteDao().update(
-                note
-            )
+            note?.let {
+                notesDao.noteDao().update(
+                    it
+                )
+            }
             //val notes: List<Note> = notesDao.noteDao().getAll()
 
             // val note = notes[0]
@@ -188,14 +190,14 @@ class MainActivity : AppCompatActivity() {
     ).build()
 
 
-    suspend fun getNextModel()= getDb().noteDao().getAll().sortedBy { it.rating }.first()
+    suspend fun getNextModel(): Note? = getDb().noteDao().getAll().sortedBy { it.rating }.firstOrNull()
 
     suspend fun showNextNote(questionTv : TextView){
       val nextNote = getNextModel()
 
         GlobalScope.launch(Dispatchers.Main) {
-          questionTv.text=nextNote.question
-            currentHash = nextNote.hash ?:""
+          questionTv.text=nextNote?.question
+            currentHash = nextNote?.hash ?:""
         }
 
     }
