@@ -186,7 +186,7 @@ class MainActivity : AppCompatActivity() {
 
      suspend fun getDb(): AppDatabase = Room.databaseBuilder(
         applicationContext,
-        AppDatabase::class.java, "database-name"
+        AppDatabase::class.java, "database-name1"
     ).build()
 
 
